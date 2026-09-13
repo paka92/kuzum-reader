@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import '../main.dart';
 import '../models/book.dart';
 import '../models/naming.dart';
-import '../services/sharing.dart';
 import 'format.dart';
 import 'mini_player.dart';
 import 'reader_page.dart';
+import 'share_sheet.dart';
 
 /// Table of contents for one book: sections, and the parts inside them.
 /// Choosing a part is how you pick which text gets read aloud.
@@ -52,18 +52,9 @@ class _BookPageState extends State<BookPage> {
   Future<void> _shareSelected() async {
     final indices = _selected.toList()..sort();
     final chapters = [for (final i in indices) book.chapters[i]];
-    final outcome = await ShareService.shareChapterTexts(book, chapters);
-    if (!mounted) return;
-    if (outcome.nothingToShare) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('None of the selected parts have text to share.')));
-      return;
-    }
-    if (outcome.skipped > 0) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-              '${outcome.skipped} selected part(s) have no text and were left out.')));
-    }
+    final shared =
+        await showPassageShareSheet(context, book: book, chapters: chapters);
+    if (!mounted || !shared) return;
     setState(() => _selected.clear());
   }
 
@@ -121,7 +112,7 @@ class _BookPageState extends State<BookPage> {
                 title: Text('${_selected.length} selected'),
                 actions: [
                   IconButton(
-                    tooltip: 'Share selected parts as text files',
+                    tooltip: 'Ask AI about selected parts, or share them',
                     icon: const Icon(Icons.share),
                     onPressed: _shareSelected,
                   ),

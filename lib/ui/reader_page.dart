@@ -8,6 +8,7 @@ import '../models/book.dart';
 import '../models/naming.dart';
 import '../services/sharing.dart';
 import 'format.dart';
+import 'share_sheet.dart';
 
 /// Reading view. The text shown is always the part the player has loaded, so
 /// text and audio stay matched part-by-part — select a part and it reads that
@@ -102,15 +103,10 @@ class _ReaderPageState extends State<ReaderPage> {
             ),
             actions: [
               IconButton(
-                tooltip: 'Share this part as a text file',
+                tooltip: 'Ask AI about this part, or share it',
                 icon: const Icon(Icons.share),
-                onPressed: () async {
-                  final outcome =
-                      await ShareService.shareChapterTexts(book, [chapter]);
-                  if (!context.mounted || !outcome.nothingToShare) return;
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text('This part has no text to share.')));
-                },
+                onPressed: () => showPassageShareSheet(context,
+                    book: book, chapters: [chapter]),
               ),
               PopupMenuButton<double>(
                 tooltip: 'Text size',
@@ -162,6 +158,26 @@ class _ReaderPageState extends State<ReaderPage> {
                                   ? value.selection.textInside(value.text)
                                   : '';
                               final items = [
+                                // The go-to chatbot leads the toolbar, with
+                                // the explain-this-passage prompt wrapped
+                                // around the highlighted text.
+                                if (passage.trim().isNotEmpty)
+                                  ContextMenuButtonItem(
+                                    label: 'Ask ChatGPT',
+                                    onPressed: () {
+                                      ContextMenuController.removeAny();
+                                      ShareService.askChatGpt(
+                                          ShareService.buildAskPrompt(
+                                        bookTitle: book.title,
+                                        passages: [
+                                          (
+                                            title: fullChapterTitle(chapter),
+                                            text: passage.trim(),
+                                          ),
+                                        ],
+                                      ));
+                                    },
+                                  ),
                                 ...editableState.contextMenuButtonItems,
                                 if (passage.trim().isNotEmpty)
                                   ContextMenuButtonItem(
