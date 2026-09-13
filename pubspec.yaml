@@ -1,0 +1,30 @@
+name: kuzum_reader
+description: Kuzum Reader — offline reader for zipped book packages, matched text and audio.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # Playback engine.
+  just_audio: ^0.9.42
+  # Foreground service / MediaSession: keeps audio and lock-screen controls
+  # alive while the phone is locked.
+  audio_service: ^0.18.15
+  # One-time zip unpacking.
+  archive: ^3.6.1
+  file_picker: ^8.1.4
+  path_provider: ^2.1.5
+  path: ^1.9.0
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
