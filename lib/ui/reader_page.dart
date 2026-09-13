@@ -6,6 +6,7 @@ import 'package:just_audio/just_audio.dart';
 import '../main.dart';
 import '../models/book.dart';
 import '../models/naming.dart';
+import '../services/sharing.dart';
 import 'format.dart';
 
 /// Reading view. The text shown is always the part the player has loaded, so
@@ -100,6 +101,17 @@ class _ReaderPageState extends State<ReaderPage> {
               ],
             ),
             actions: [
+              IconButton(
+                tooltip: 'Share this part as a text file',
+                icon: const Icon(Icons.share),
+                onPressed: () async {
+                  final outcome =
+                      await ShareService.shareChapterTexts(book, [chapter]);
+                  if (!context.mounted || !outcome.nothingToShare) return;
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('This part has no text to share.')));
+                },
+              ),
               PopupMenuButton<double>(
                 tooltip: 'Text size',
                 icon: const Icon(Icons.format_size),
@@ -141,6 +153,30 @@ class _ReaderPageState extends State<ReaderPage> {
                               fontSize: 17 * library.fontScale,
                               height: 1.65,
                             ),
+                            // Adds Share to the copy/select-all toolbar, so a
+                            // highlighted passage can go straight to a chat
+                            // app or chatbot.
+                            contextMenuBuilder: (context, editableState) {
+                              final value = editableState.textEditingValue;
+                              final passage = value.selection.isValid
+                                  ? value.selection.textInside(value.text)
+                                  : '';
+                              final items = [
+                                ...editableState.contextMenuButtonItems,
+                                if (passage.trim().isNotEmpty)
+                                  ContextMenuButtonItem(
+                                    label: 'Share',
+                                    onPressed: () {
+                                      ContextMenuController.removeAny();
+                                      ShareService.shareText(passage.trim());
+                                    },
+                                  ),
+                              ];
+                              return AdaptiveTextSelectionToolbar.buttonItems(
+                                anchors: editableState.contextMenuAnchors,
+                                buttonItems: items,
+                              );
+                            },
                           ),
                         ),
                       ),

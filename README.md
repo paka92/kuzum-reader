@@ -68,6 +68,12 @@ listen (coalesced to one write every few seconds, plus on pause and on
 backgrounding). The library shows percentage and time left; "Continue
 listening" drops you back exactly where you stopped.
 
+**Passages can be shared** — built for "explain this to me" moments with a
+chatbot. Long-press any part in a book's contents to start selecting (long-press
+a section title to select the whole section), then share the selection as
+named `.txt` files. The reader has the same share for the current part, and
+text highlighted in the reader gains a Share option next to Copy.
+
 **Plays from a pocket.** The whole book is loaded as one queue, so parts roll
 into the next one without the app on screen. An Android foreground service with
 a MediaSession keeps audio alive with the screen locked and puts
