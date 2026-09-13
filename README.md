@@ -137,6 +137,44 @@ present, before trusting it on a phone:
 dart run tool/verify_real_zip.dart path/to/Book.zip /tmp/unpacked
 ```
 
+## Building from CI
+
+`.github/workflows/build-apk.yml` analyses, tests and builds a release APK on
+every push to `master`, and on demand via **Actions → Build APK → Run workflow**
+(where you can pick a different ABI). The APK is attached to the run as an
+artifact, kept for 30 days. It targets `android-arm64` by default, which is what
+any modern phone runs.
+
+### One-time signing setup
+
+Without a keystore the release build falls back to the debug key — and GitHub
+generates a *fresh* debug key on every run, so those APKs cannot be installed
+over one another (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`). To get stable,
+upgradable builds, create a keystore once:
+
+```bash
+keytool -genkey -v -keystore kuzum-release.jks \
+  -keyalg RSA -keysize 2048 -validity 10000 -alias kuzum
+base64 -i kuzum-release.jks | pbcopy      # macOS; base64 -w0 on Linux
+```
+
+Then add four repository secrets under **Settings → Secrets and variables →
+Actions**:
+
+| Secret | Value |
+|---|---|
+| `KEYSTORE_BASE64` | the base64 text copied above |
+| `KEYSTORE_PASSWORD` | the store password you chose |
+| `KEY_ALIAS` | `kuzum` |
+| `KEY_PASSWORD` | the key password you chose |
+
+Keep `kuzum-release.jks` somewhere safe and **out of the repo** — `key.properties`,
+`*.jks` and `*.keystore` are gitignored. If you lose it you cannot update an
+installed app; you have to uninstall and reinstall, losing the library.
+
+Local builds need none of this: with no `android/key.properties` present,
+`flutter build apk --release` signs with your own debug key as before.
+
 ## App identity and icon
 
 The app is **Kuzum Reader** (`android:label`, iOS `CFBundleDisplayName`, and the
