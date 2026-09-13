@@ -175,6 +175,42 @@ installed app; you have to uninstall and reinstall, losing the library.
 Local builds need none of this: with no `android/key.properties` present,
 `flutter build apk --release` signs with your own debug key as before.
 
+### Is it safe to put the keystore in a public repo's secrets?
+
+Yes — the repository being public does not make its secrets public. Encrypted
+secrets are stored sealed, are write-only (nobody, including you, can read a
+value back after saving it), are decrypted only into the runner at job time, and
+are masked if they ever reach the log. The runner is a throwaway VM that is
+destroyed when the job ends, so the decoded `.jks` exists only for that run.
+
+What actually protects a *public* repo, and how this workflow leans on it:
+
+- **Fork pull requests get no secrets at all.** Anyone can fork this repo and
+  open a PR that edits the workflow, but GitHub refuses to hand secrets to a
+  `pull_request` run from a fork, so there is nothing to steal. This workflow
+  never uses `pull_request_target`, which is the trigger that *would* be unsafe.
+- **Signing is skipped on every pull request**, fork or not, so a PR can never
+  reach the keystore even from a branch inside this repo.
+- **Actions are pinned to commit SHAs**, not tags. A tag can be moved; pinning
+  means a compromised upstream release cannot run new code in the job that holds
+  the keystore.
+- **`permissions: contents: read`** limits the job's `GITHUB_TOKEN` to reading
+  the repo, so a compromised step cannot push or publish.
+- **Only the APK is uploaded** as an artifact — never the keystore or
+  `key.properties`. A signed APK contains the public certificate, never the
+  private key.
+
+The honest limit: secrets protect against people who can *read* the repo, not
+against anyone who can *write* to it. Whoever can push to `master` (or take over
+the account) can add a step that prints the secret. So protect the account with
+2FA, and treat the keystore as compromised if the account ever is.
+
+For more gating, put the secrets in a GitHub **Environment** with required
+reviewers, so releases need an explicit approval before the key is handed out.
+And if you would rather no key material ever leaves your machine, build releases
+locally and let CI do only analyze/test — everything still works, the artifact is
+just debug-signed.
+
 ## App identity and icon
 
 The app is **Kuzum Reader** (`android:label`, iOS `CFBundleDisplayName`, and the
