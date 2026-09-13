@@ -70,9 +70,13 @@ listening" drops you back exactly where you stopped.
 
 **Passages can be shared** — built for "explain this to me" moments with a
 chatbot. Long-press any part in a book's contents to start selecting (long-press
-a section title to select the whole section), then share the selection as
-named `.txt` files. The reader has the same share for the current part, and
-text highlighted in the reader gains a Share option next to Copy.
+a section title to select the whole section), then hit share. The chooser leads
+with **Ask ChatGPT**: the passage is wrapped in a Turkish prompt naming the book
+and asking for the main idea, brief info on any people or places, and the
+terminology — answered in Turkish — and opens straight in the ChatGPT app
+(any other AI via the share sheet, or plain `.txt` files, are one row below).
+The reader has the same chooser for the current part, and text highlighted in
+the reader gets Ask ChatGPT first in its toolbar.
 
 **Plays from a pocket.** The whole book is loaded as one queue, so parts roll
 into the next one without the app on screen. An Android foreground service with
