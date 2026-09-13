@@ -106,7 +106,10 @@ class PlayerHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       } finally {
         _restoring = false;
       }
-      if (autoPlay && !_player.playing) await _player.play();
+      // Not awaited: just_audio's play() future only completes when
+      // playback later pauses or finishes, which would hold openBook —
+      // and the navigation behind it — hostage for the whole listen.
+      if (autoPlay && !_player.playing) unawaited(_player.play());
       return;
     }
 
@@ -134,7 +137,8 @@ class PlayerHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         initialPosition: targetPosition,
       );
       _restoring = false;
-      if (autoPlay) await _player.play();
+      // Same as above: play() must not be awaited.
+      if (autoPlay) unawaited(_player.play());
     } catch (e) {
       _error.value = 'Could not start playback: $e';
     } finally {
@@ -160,7 +164,7 @@ class PlayerHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     if (index < 0 || index >= _chapters.length) return;
     await _player.seek(Duration.zero, index: index);
     currentChapter.value = index;
-    if (autoPlay && !_player.playing) await _player.play();
+    if (autoPlay && !_player.playing) unawaited(_player.play());
   }
 
   void _persist({bool force = false}) {
